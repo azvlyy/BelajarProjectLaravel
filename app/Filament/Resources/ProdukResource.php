@@ -1,0 +1,200 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ProdukResource\Pages;
+use App\Filament\Resources\ProdukResource\RelationManagers;
+use App\Models\Produk;
+use Filament\Forms;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+// new library
+use Filament\Forms\Components\TextInput; // komponen input teks standar
+use Filament\Forms\Components\FileUpload; // untuk mengunggah file (gambar atau dokumen)
+use Filament\Forms\Components\Repeater; // untuk membuat inputan yang bisa ditambah/duplikasi berkali-kali
+use Filament\Forms\Components\Select; // untuk dropdown pilihan (bisa mengambil data statis atau relasi dari database lain)
+use Filament\Forms\Components\Fieldset; // untuk mengelompokkan beberapa inputan ke dalam satu kotak dengan label (agar form yang panjang terlihat lebih rapi dan terorganisir)
+use Filament\Forms\Components\TagsInput; // untuk membuat tag (user bisa mengetik lalu menekan enter untuk memisahkan kata menjadi label-label kecil)
+use Filament\Tables\Columns\ImageColumn; // untuk menampilkan thumbnail gambar langsung di tabel
+use Filament\Tables\Columns\TextColumn; // untuk menampilkan data berupa teks biasa
+use Filament\Tables\Columns\IconColumn; // untuk menampilkan ikon (dari heroicons) 
+use Filament\Tables\Actions\EditAction; // tombol otomatis untuk membuka modal atau halaman edit data pada baris tersebut
+use Filament\Tables\Actions\DeleteAction; // tombol untuk menghapus satu baris data tertentu dengan konfirmasi
+use Filament\Tables\Actions\BulkActionGroup; // wadah untuk mengelompokkan aksi-aksi yang dilakukan pada banyak data sekaligus
+use Filament\Tables\Actions\DeleteBulkAction; // aksi khusus di dalam grup untuk menghapus semua data yang sedang dicentang (selected) secara bersamaan
+
+class ProdukResource extends Resource
+{
+    protected static ?string $model = Produk::class;
+
+    protected static ?string $navigationLabel = 'Product';
+
+    protected static ?string $pluralModelLabel = 'Product';
+
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Fieldset Informasi Produk
+                Fieldset::make('Informasi Produk')
+                    ->schema([
+
+                        TextInput::make('name')
+                            ->label('Nama Produk')
+                            ->required()
+                            ->maxLength(255),
+
+                        TextInput::make('price')
+                            ->label('Harga Produk')
+                            ->prefix('Rp')
+                            ->numeric()
+                            ->required(),
+
+                        FileUpload::make('thumbnail')
+                            ->label('Gambar Produk')
+                            ->image()
+                            ->directory('produk/thumbnail')
+                            ->maxSize(1024)
+                            ->columnSpanFull()
+                            ->required(),
+
+                        // galeri produk
+                        Repeater::make('photo')
+                            ->label('Galeri Produk')
+                            ->schema([
+                                FileUpload::make('photo')
+                                    ->label('Tambahkan Gambar Produk Lainnya')
+                                    ->image()
+                                    ->directory('produk/gallery')
+                                    ->maxSize(1024)
+                                    ->columnSpanFull()
+                            ])
+                            ->addActionLabel('Tambah Gambar'),
+
+                        // ukuran produk
+                        Repeater::make('ukuran')
+                            ->label('Ukuran Produk')
+                            ->schema([
+                                TagsInput::make('size')
+                                    ->label('Ukuran')
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->suggestions([
+                                        '36', '37', '38', '39', '40', '41', '42'
+                                    ])
+                            ])
+                            ->addActionLabel('Tambah Ukuran'),
+                    ]),
+
+                // Fieldset Informasi Tambahan
+                Fieldset::make('Informasi Tambahan')
+                    ->schema([
+
+                        Textarea::make('about')
+                            ->label('Deskripsi Produk')
+                            ->columnSpanFull()
+                            ->required(),
+
+                        Select::make('is_populer')
+                            ->label('Produk Populer?')
+                            ->required()
+                            ->options([
+                                1 => 'Ya',
+                                2 => 'Tidak'
+                            ]),
+
+                        // kategori produk
+                        Select::make('category_id')
+                            ->label('Kategori Produk')
+                            ->relationship('category', 'name')
+                            ->required(),
+
+                        // brand produk
+                        Select::make('brand_id')
+                            ->label('Brand Produk')
+                            ->relationship('brand', 'name')
+                            ->required(),
+
+                        // stok produk
+                        TextInput::make('stock')
+                            ->label('Stok Produk')
+                            ->numeric()
+                            ->required()
+                            ->suffix('pcs'),
+                    ])
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                ImageColumn::make('thumbnail')
+                ->label('Gambar'),
+
+                TextColumn::make('name')
+                    ->label('Nama')
+                    ->searchable()
+                    ->weight('medium')
+                    ->sortable(),
+
+                TextColumn::make('price')
+                    ->label('Harga')
+                    ->money('IDR')
+                    ->sortable(),
+
+                TextColumn::make('category.name')
+                    ->label('Kategori')
+                    ->sortable(),
+
+                TextColumn::make('brand.name')
+                    ->label('Merek')
+                    ->sortable(),
+
+                TextColumn::make('stock')
+                    ->label('Stok')
+                    ->sortable(),
+                
+                IconColumn::make('is_populer')
+                    ->label('Populer')
+                    ->boolean(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make()
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListProduks::route('/'),
+            'create' => Pages\CreateProduk::route('/create'),
+            'edit' => Pages\EditProduk::route('/{record}/edit'),
+        ];
+    }
+}
