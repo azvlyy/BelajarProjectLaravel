@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProdukResource\Pages;
 use App\Filament\Resources\ProdukResource\RelationManagers;
 use App\Models\Produk;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
@@ -21,7 +22,6 @@ use Filament\Forms\Components\FileUpload; // untuk mengunggah file (gambar atau 
 use Filament\Forms\Components\Repeater; // untuk membuat inputan yang bisa ditambah/duplikasi berkali-kali
 use Filament\Forms\Components\Select; // untuk dropdown pilihan (bisa mengambil data statis atau relasi dari database lain)
 use Filament\Forms\Components\Fieldset; // untuk mengelompokkan beberapa inputan ke dalam satu kotak dengan label (agar form yang panjang terlihat lebih rapi dan terorganisir)
-use Filament\Forms\Components\TagsInput; // untuk membuat tag (user bisa mengetik lalu menekan enter untuk memisahkan kata menjadi label-label kecil)
 use Filament\Tables\Columns\ImageColumn; // untuk menampilkan thumbnail gambar langsung di tabel
 use Filament\Tables\Columns\TextColumn; // untuk menampilkan data berupa teks biasa
 use Filament\Tables\Columns\IconColumn; // untuk menampilkan ikon (dari heroicons) 
@@ -68,7 +68,8 @@ class ProdukResource extends Resource
                             ->required(),
 
                         // galeri produk
-                        Repeater::make('photo')
+                        Repeater::make('photos')
+                            ->relationship()
                             ->label('Galeri Produk')
                             ->schema([
                                 FileUpload::make('photo')
@@ -81,15 +82,23 @@ class ProdukResource extends Resource
                             ->addActionLabel('Tambah Gambar'),
 
                         // ukuran produk
-                        Repeater::make('ukuran')
+                        Repeater::make('sizes')
+                            ->relationship()
                             ->label('Ukuran Produk')
                             ->schema([
-                                TagsInput::make('size')
+                                Select::make('size')
                                     ->label('Ukuran')
-                                    ->required()
                                     ->columnSpanFull()
-                                    ->suggestions([
-                                        '36', '37', '38', '39', '40', '41', '42'
+                                    ->options([
+                                        '36' => '36',
+                                        '37' => '37',
+                                        '38' => '38',
+                                        '39' => '39',
+                                        '40' => '40',
+                                        '41' => '41',
+                                        '42' => '42',
+                                        '43' => '43',
+                                        '44' => '44',
                                     ])
                             ])
                             ->addActionLabel('Tambah Ukuran'),
@@ -106,10 +115,9 @@ class ProdukResource extends Resource
 
                         Select::make('is_populer')
                             ->label('Produk Populer?')
-                            ->required()
                             ->options([
-                                1 => 'Ya',
-                                2 => 'Tidak'
+                                true => 'Ya',
+                                false => 'Tidak'
                             ]),
 
                         // kategori produk
@@ -172,12 +180,16 @@ class ProdukResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->iconButton()
+                    ->tooltip('Edit'),
                 DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Hapus')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                DeleteBulkAction::make()
                 ]),
             ]);
     }

@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile() // biar bisa ngedit profile
             ->userMenuItems([
         ])
-            ->brandName('fictioncollective.')
+            ->brandName('Laravel.')
             ->login()
             ->colors([
                 'primary' => '#27272a',

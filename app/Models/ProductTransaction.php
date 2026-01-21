@@ -25,7 +25,7 @@ class ProductTransaction extends Model
         'discount_amount',
         'is_paid',
         'produk_id',
-        'produk_size',
+        'shoe_size',
         'promo_code_id',
         'proof',
     ];
