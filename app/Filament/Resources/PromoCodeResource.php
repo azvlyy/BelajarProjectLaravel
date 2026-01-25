@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\EditAction;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\DeleteAction;
@@ -42,7 +43,7 @@ class PromoCodeResource extends Resource
                     ->maxLength(50),
                 TextInput::make('discount_amount')
                     ->label('Jumlah Diskon')
-                    ->prefix('IDR')
+                    ->prefix('Rp')
                     ->numeric()
                     ->required(),
             ]);
@@ -58,7 +59,7 @@ class PromoCodeResource extends Resource
                     ->weight('medium'),
                 TextColumn::make('discount_amount')
                     ->label('Jumlah Diskon')
-                    ->money('IDR')
+                    ->money('IDR', locale: 'id')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Dibuat Pada')

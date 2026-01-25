@@ -256,9 +256,15 @@ class ProductTransactionResource extends Resource
                 TextColumn::make('booking_trx_id')
                     ->label('Booking ID'),
 
-                IconColumn::make('is_paid')
+                TextColumn::make('is_paid')
                     ->label('Status Pembayaran')
-                    ->boolean()
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state
+                        ? 'Sudah Bayar'
+                        : 'Belum Bayar')
+                    ->color(fn (bool $state): string => $state
+                        ? 'success'
+                        : 'danger')
             ])
             ->filters([
                 //

@@ -136,6 +136,8 @@ class ProdukResource extends Resource
                         TextInput::make('stock')
                             ->label('Stok Produk')
                             ->numeric()
+                            ->default(1)
+                            ->minValue(1)
                             ->required()
                             ->suffix('pcs'),
                     ])
@@ -147,7 +149,8 @@ class ProdukResource extends Resource
         return $table
             ->columns([
                 ImageColumn::make('thumbnail')
-                ->label('Gambar'),
+                ->label('Gambar')
+                ->size(50),
 
                 TextColumn::make('name')
                     ->label('Nama')
@@ -157,7 +160,7 @@ class ProdukResource extends Resource
 
                 TextColumn::make('price')
                     ->label('Harga')
-                    ->money('IDR')
+                    ->money('IDR', locale: 'id')
                     ->sortable(),
 
                 TextColumn::make('category.name')
