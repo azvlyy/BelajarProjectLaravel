@@ -49,4 +49,16 @@ class ProductTransaction extends Model
     {
         return $this->belongsTo(PromoCode::class, 'promo_code_id');
     }
+
+    protected static function booted()
+    {
+        // saat transaksi baru dibuat, stok berkurang
+        static::created(function ($transaksi) {
+            $transaksi->produk->decrement('stock', $transaksi->quantity);
+        });
+
+        static::deleted(function($transaksi) {
+            $transaksi->produk->increment('stock', $transaksi->quantity);
+        });
+    }
 }
