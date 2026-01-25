@@ -16,11 +16,11 @@ return new class extends Migration
             $table->id();
             $table->string(column: 'name');
             $table->string(column: 'slug');
-            $table->string(column: 'thumbnail');
+            $table->string(column: 'thumbnail')->nullable();
             $table->text(column: 'about');
             $table->unsignedBigInteger(column: 'price');
             $table->unsignedBigInteger(column: 'stock');
-            $table->boolean(column: 'is_populer');
+            $table->boolean(column: 'is_populer')->default(false);
             $table->foreignId(column: 'category_id')->constrained()->cascadeOnDelete();
             $table->foreignId(column: 'brand_id')->constrained()->cascadeOnDelete();
             $table->softDeletes();
