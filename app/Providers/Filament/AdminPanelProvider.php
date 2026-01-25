@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
         ])
             ->brandName('Laravel.')
             ->login()
+            ->darkMode(false)
             ->colors([
                 'primary' => '#27272a',
             ])

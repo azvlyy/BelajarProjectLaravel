@@ -19,11 +19,12 @@ return new class extends Migration
             $table->string('booking_trx_id');
             $table->string('city');
             $table->string('post_code');
-            $table->string('proof');
+            $table->string('proof')->nullable();
             $table->unsignedBigInteger('shoe_size');
             $table->text('address');
             $table->unsignedBigInteger('quantity');
             $table->unsignedBigInteger('sub_total_amount');
+            $table->unsignedBigInteger('discount_amount')->default(0);
             $table->unsignedBigInteger('grand_total_amount');
             $table->boolean('is_paid');
             $table->foreignId('produk_id')->constrained()->cascadeOnDelete();

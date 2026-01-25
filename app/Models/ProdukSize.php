@@ -13,4 +13,16 @@ class ProdukSize extends Model
         'size',
         'produk_id',
     ];
+
+    protected static function getSize(?int $produkId) {
+        // cek data
+        if (!$produkId) {
+            return[];
+        }
+
+        // ambil data size dari tabel produk_size yg punya produk_id tersebut
+        return self::where('produk_id', $produkId)
+            ->pluck('size', 'size')
+            ->toArray();
+    }
 }
