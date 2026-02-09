@@ -16,20 +16,4 @@ class CreateProductTransaction extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-
-    protected function afterCreate(): void
-    {
-        // ambil data transaksi
-        $record = $this->record;
-
-        // ambil data produk
-        $produk = Produk::find($record->produk_id);
-
-        if ($produk) {
-            // kurang stok
-            $produk -> decrement('stock', $record->quantity);
-        }
-
-
-    }
 }

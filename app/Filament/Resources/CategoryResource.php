@@ -21,18 +21,38 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\BulkActionGroup;;
+use Filament\Tables\Actions\BulkActionGroup;
+;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static ?string $navigationLabel = 'Category';
-
-    protected static ?string $pluralModelLabel = 'Category';
-
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -41,16 +61,18 @@ class CategoryResource extends Resource
                 TextInput::make('name')
                     ->label('Kategori')
                     ->required()
-                    ->columnSpanFull()
-                    ->maxLength(255),
+                    ->minLength(4)
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true)
+                    ->regex('/^[A-Za-z\s.]+$/') // hanya huruf, spasi, dan titik
+                    ->columnSpanFull(),
                 FileUpload::make('icon')
                     ->label('Ikon')
                     ->image()
                     ->directory('categories')
                     ->maxSize(1024)
                     ->columnSpanFull()
-                    ->required()
-                    ->nullable(),
+                    ->required(),
             ]);
     }
 
@@ -70,16 +92,17 @@ class CategoryResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Edit'),
-                DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Hapus'),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon('heroicon-o-ellipsis-vertical')
+                    ->tooltip('Opsi')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

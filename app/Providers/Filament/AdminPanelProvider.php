@@ -30,13 +30,13 @@ class AdminPanelProvider extends PanelProvider
             ->profile() // biar bisa ngedit profile
             ->userMenuItems([
         ])
-            ->brandName('Laravel.')
+            ->brandName('Laravel.') // ganti nama brand di pojok kiri atas
             ->login()
             ->darkMode(false)
             ->colors([
                 'primary' => '#27272a',
             ])
-            ->spa()
+            ->spa() // single page application (biar gak reload pas pindah halaman)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

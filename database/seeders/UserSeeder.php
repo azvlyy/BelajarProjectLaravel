@@ -12,6 +12,8 @@ class UserSeeder extends Seeder
     /**
      * Run the database seeds.
      */
+
+    // membuat data user admin secara otomatis ke database
     public function run(): void
     {
         User::create([

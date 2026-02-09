@@ -22,14 +22,15 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
 
 class PromoCodeResource extends Resource
 {
     protected static ?string $model = PromoCode::class;
 
+    // ganti nama halaman di sidebar
     protected static ?string $navigationLabel = 'Promo Code';
-
-    protected static ?string $pluralModelLabel = 'Promo Code';
 
     protected static ?string $navigationIcon = 'heroicon-o-gift';
 
@@ -40,10 +41,13 @@ class PromoCodeResource extends Resource
                 TextInput::make('code')
                     ->label('Kode Promo')
                     ->required()
+                    ->unique(ignoreRecord: true)
+                    ->minLength(5)
                     ->maxLength(50),
                 TextInput::make('discount_amount')
                     ->label('Jumlah Diskon')
                     ->prefix('Rp')
+                    ->minValue(20000)
                     ->numeric()
                     ->required(),
             ]);
@@ -71,12 +75,13 @@ class PromoCodeResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Edit'),
-                DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Hapus'),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->tooltip('Opsi')
             ])
             ->bulkActions([
                 BulkActionGroup::make([

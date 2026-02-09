@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProdukResource\Pages;
 use App\Filament\Resources\ProdukResource\RelationManagers;
 use App\Models\Produk;
-use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
@@ -29,16 +28,35 @@ use Filament\Tables\Actions\EditAction; // tombol otomatis untuk membuka modal a
 use Filament\Tables\Actions\DeleteAction; // tombol untuk menghapus satu baris data tertentu dengan konfirmasi
 use Filament\Tables\Actions\BulkActionGroup; // wadah untuk mengelompokkan aksi-aksi yang dilakukan pada banyak data sekaligus
 use Filament\Tables\Actions\DeleteBulkAction; // aksi khusus di dalam grup untuk menghapus semua data yang sedang dicentang (selected) secara bersamaan
+use Filament\Tables\Actions\ActionGroup; // wadah untuk mengelompokkan beberapa aksi menjadi satu dropdown
+use Filament\Tables\Actions\ViewAction; // tombol untuk melihat detail data pada baris tersebut
 
 class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
 
-    protected static ?string $navigationLabel = 'Product';
-
-    protected static ?string $pluralModelLabel = 'Product';
-
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -51,11 +69,15 @@ class ProdukResource extends Resource
                         TextInput::make('name')
                             ->label('Nama Produk')
                             ->required()
+                            ->unique(ignoreRecord: true)
+                            ->minLength(5)
                             ->maxLength(255),
 
                         TextInput::make('price')
                             ->label('Harga Produk')
                             ->prefix('Rp')
+                            ->minValue(100000)
+                            ->maxLength(20)
                             ->numeric()
                             ->required(),
 
@@ -75,20 +97,21 @@ class ProdukResource extends Resource
                                 FileUpload::make('photo')
                                     ->label('Tambahkan Gambar Produk Lainnya')
                                     ->image()
+                                    ->required()
                                     ->directory('produk/gallery')
                                     ->maxSize(1024)
-                                    ->columnSpanFull()
                             ])
                             ->addActionLabel('Tambah Gambar'),
 
                         // ukuran produk
-                        Repeater::make('sizes')
+                        Repeater::make('sizes') // hasMany relationship 'sizes'
                             ->relationship()
                             ->label('Ukuran Produk')
                             ->schema([
                                 Select::make('size')
                                     ->label('Ukuran')
-                                    ->columnSpanFull()
+                                    ->required()
+                                    ->distinct() // mencegah duplikasi ukuran yang sama
                                     ->options([
                                         '36' => '36',
                                         '37' => '37',
@@ -111,6 +134,7 @@ class ProdukResource extends Resource
                         Textarea::make('about')
                             ->label('Deskripsi Produk')
                             ->columnSpanFull()
+                            ->maxLength(1000)
                             ->required(),
 
                         Select::make('is_populer')
@@ -149,8 +173,8 @@ class ProdukResource extends Resource
         return $table
             ->columns([
                 ImageColumn::make('thumbnail')
-                ->label('Gambar')
-                ->size(50),
+                    ->label('Gambar')
+                    ->size(50),
 
                 TextColumn::make('name')
                     ->label('Nama')
@@ -174,7 +198,7 @@ class ProdukResource extends Resource
                 TextColumn::make('stock')
                     ->label('Stok')
                     ->sortable(),
-                
+
                 IconColumn::make('is_populer')
                     ->label('Populer')
                     ->boolean(),
@@ -183,16 +207,17 @@ class ProdukResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Edit'),
-                DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Hapus')
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                    ->icon('heroicon-o-ellipsis-vertical')
+                    ->tooltip('Opsi')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                DeleteBulkAction::make()
+                    DeleteBulkAction::make()
                 ]),
             ]);
     }

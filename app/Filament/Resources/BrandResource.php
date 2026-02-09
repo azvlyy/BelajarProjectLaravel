@@ -23,16 +23,38 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\BulkActionGroup;;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Filters\TrashedFilter; // untuk menampilkan data yang dihapus secara soft delete
+use Filament\Tables\Actions\ForceDeleteBulkAction; // untuk menghapus data secara permanen
+use Filament\Tables\Actions\RestoreBulkAction; // untuk mengembalikan data
 
 class BrandResource extends Resource
 {
     protected static ?string $model = Brand::class;
 
-    protected static ?string $navigationLabel = 'Brand';
-
-    protected static ?string $pluralModelLabel = 'Brand';
-
     protected static ?string $navigationIcon = 'heroicon-o-star';
+
+    public static function canCreate():bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+    
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record):bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record):bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
+        public static function canDeleteAny():bool
+    {
+        return auth()->user()->isSuperAdmin();
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -41,16 +63,17 @@ class BrandResource extends Resource
                 TextInput::make('name')
                     ->label('Nama')
                     ->required()
-                    ->columnSpanFull()
-                    ->maxLength(255),
+                    ->unique(ignoreRecord: true)
+                    ->minLength(3)
+                    ->maxLength(50)
+                    ->columnSpanFull(),
                 FileUpload::make('logo')
                     ->label('Logo')
                     ->image()
                     ->columnSpanFull()
                     ->directory('brands')
-                    ->maxSize(2048)
-                    ->required()
-                    ->nullable(),
+                    ->maxSize(1024)
+                    ->required(),
             ]);
     }
 
@@ -67,19 +90,23 @@ class BrandResource extends Resource
                     ->square(),
             ])
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
             ->actions([
-                EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Edit'),
-                DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Hapus'),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->tooltip('Opsi')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                 DeleteBulkAction::make(),
+                // Soft Deletes Restore & delete (permanent)
+                    // ForceDeleteBulkAction::make(),
+                    // RestoreBulkAction::make(),
                 ]),
             ]);
     }

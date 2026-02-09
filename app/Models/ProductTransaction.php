@@ -52,13 +52,20 @@ class ProductTransaction extends Model
 
     protected static function booted()
     {
-        // saat transaksi baru dibuat, stok berkurang
-        static::created(function ($transaksi) {
-            $transaksi->produk->decrement('stock', $transaksi->quantity);
+        // Saat transaksi masuk
+        static::created(function ($transaction) {
+            $produk = $transaction->produk;
+            // Pastikan stok cukup sebelum dipotong
+            if ($produk && $produk->stock >= $transaction->quantity) {
+                $produk->decrement('stock', $transaction->quantity);
+            }
         });
 
-        static::deleted(function($transaksi) {
-            $transaksi->produk->increment('stock', $transaksi->quantity);
+        // Saat transaksi dihapus (Stok balik lagi)
+        static::deleted(function ($transaction) {
+            if ($transaction->produk) {
+                $transaction->produk->increment('stock', $transaction->quantity);
+            }
         });
     }
 }
